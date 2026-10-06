@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb
+type: Opaque
+stringData:
+  # ATENCAO: senha em texto puro somente para o laboratorio
+  root-password: qwe123qwe
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mariadb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11.4
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb
+                  key: root-password
+          ports:
+            - name: mysql
+              containerPort: 3306
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect"]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mariadb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+spec:
+  selector:
+    app.kubernetes.io/name: mariadb
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql

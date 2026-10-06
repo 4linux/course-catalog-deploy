@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: production
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+replicas:
+  - name: course-catalog
+    count: 2
+
+patches:
+  - target:
+      kind: Ingress
+      name: course-catalog
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: production.192.168.88.30.nip.io
+
+images:
+  - name: course-catalog
+    newName: 192.168.88.20:8082/course_catalog
+    newTag: "0.1"
