@@ -1,6 +1,6 @@
 # Course Catalog - Deploy
 
-Repositório de deploy da aplicação [Course Catalog](http://192.168.88.10:3000/root/course-catalog), no modelo **GitOps**.
+Repositório de deploy da aplicação [Course Catalog](https://github.com/4linux/simplePythonFlask), no modelo **GitOps**.
 
 Aqui está descrito o estado desejado de cada ambiente. O **Argo CD** observa este repositório e aplica no cluster Kubernetes o que estiver na branch `main`.
 
